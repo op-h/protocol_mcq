@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCQ Maker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <aside class="sidebar" aria-label="Lecture list">
+      <div class="brand">
+        <div class="brand-mark">MCQ</div>
+        <div>
+          <h1>Network Quiz</h1>
+          <p>Lecture practice</p>
+        </div>
+      </div>
+
+      <section class="lecture-panel">
+        <h2>Lectures</h2>
+        <div id="lectureList" class="lecture-list"></div>
+      </section>
+
+      <section class="progress-panel">
+        <div class="progress-row">
+          <span>Progress</span>
+          <strong id="progressText">0 / 0</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+        <button id="resetBtn" class="secondary-btn" type="button">Reset lecture</button>
+      </section>
+    </aside>
+
+    <section class="quiz-area">
+      <header class="quiz-header">
+        <div>
+          <p id="lectureEyebrow" class="eyebrow">Lecture 1</p>
+          <h2 id="lectureTitle">Network Architecture</h2>
+        </div>
+        <div class="score-card" aria-live="polite">
+          <span>Score</span>
+          <strong id="scoreText">0%</strong>
+        </div>
+      </header>
+
+      <section class="control-strip" aria-label="Quiz controls">
+        <button id="studyModeBtn" class="mode-btn active" type="button">Study</button>
+        <button id="examModeBtn" class="mode-btn" type="button">Exam</button>
+        <button id="showAllBtn" class="secondary-btn compact" type="button">Show all answers</button>
+      </section>
+
+      <section id="questionHost" class="question-host" aria-live="polite"></section>
+
+      <footer class="quiz-footer">
+        <button id="prevBtn" class="nav-btn" type="button">Previous</button>
+        <div id="questionCounter" class="question-counter">Question 1 of 25</div>
+        <button id="nextBtn" class="nav-btn primary" type="button">Next</button>
+      </footer>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
