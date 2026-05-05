@@ -1188,7 +1188,8 @@ const state = {
   questionIndex: 0,
   mode: "study",
   showAll: false,
-  answers: {}
+  answers: {},
+  submitted: {}
 };
 
 const letters = ["A", "B", "C", "D", "E"];
@@ -1213,6 +1214,10 @@ function currentLecture() {
 
 function answerKey(questionIndex = state.questionIndex) {
   return `${currentLecture().id}-${questionIndex}`;
+}
+
+function isCurrentLectureSubmitted() {
+  return state.submitted[currentLecture().id] === true;
 }
 
 function renderLectures() {
@@ -1242,7 +1247,7 @@ function renderStats() {
 
   progressText.textContent = `${answered} / ${total}`;
   progressBar.style.width = `${(answered / total) * 100}%`;
-  scoreText.textContent = `${score}%`;
+  scoreText.textContent = state.mode === "exam" && !isCurrentLectureSubmitted() ? "Pending" : `${score}%`;
   questionCounter.textContent = `Question ${state.questionIndex + 1} of ${total}`;
 }
 
@@ -1250,7 +1255,9 @@ function renderQuestion() {
   const lecture = currentLecture();
   const question = lecture.questions[state.questionIndex];
   const selected = state.answers[answerKey()];
-  const shouldReveal = state.showAll || (state.mode === "study" && selected !== undefined);
+  const shouldReveal = state.mode === "exam"
+    ? isCurrentLectureSubmitted()
+    : state.showAll || selected !== undefined;
 
   lectureEyebrow.textContent = lecture.label;
   lectureTitle.textContent = lecture.title;
@@ -1258,7 +1265,7 @@ function renderQuestion() {
     <article class="question-card">
       <div class="question-meta">
         <span>${lecture.label}</span>
-        <span>${state.mode === "study" ? "Instant feedback" : "Exam mode"}</span>
+        <span>${state.mode === "study" ? "Instant feedback" : isCurrentLectureSubmitted() ? "Results submitted" : "Results hidden until submit"}</span>
       </div>
       <h3>${state.questionIndex + 1}. ${question.text}</h3>
       <div class="answers">
@@ -1293,7 +1300,10 @@ function render() {
   renderQuestion();
   studyModeBtn.classList.toggle("active", state.mode === "study");
   examModeBtn.classList.toggle("active", state.mode === "exam");
-  showAllBtn.textContent = state.showAll ? "Hide all answers" : "Show all answers";
+  showAllBtn.classList.toggle("primary-action", state.mode === "exam" && !isCurrentLectureSubmitted());
+  showAllBtn.textContent = state.mode === "exam"
+    ? isCurrentLectureSubmitted() ? "Hide results" : "Submit exam"
+    : state.showAll ? "Hide all answers" : "Show all answers";
 }
 
 lectureList.addEventListener("click", (event) => {
@@ -1328,6 +1338,7 @@ resetBtn.addEventListener("click", () => {
   currentLecture().questions.forEach((_, index) => {
     delete state.answers[answerKey(index)];
   });
+  delete state.submitted[currentLecture().id];
   state.questionIndex = 0;
   state.showAll = false;
   render();
@@ -1346,7 +1357,11 @@ examModeBtn.addEventListener("click", () => {
 });
 
 showAllBtn.addEventListener("click", () => {
-  state.showAll = !state.showAll;
+  if (state.mode === "exam") {
+    state.submitted[currentLecture().id] = !isCurrentLectureSubmitted();
+  } else {
+    state.showAll = !state.showAll;
+  }
   render();
 });
 

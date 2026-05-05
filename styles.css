@@ -282,6 +282,11 @@ button:focus-visible {
   background: #f2f2f7;
 }
 
+.secondary-btn.primary-action {
+  background: var(--blue);
+  color: white;
+}
+
 .secondary-btn:hover,
 .nav-btn:hover:not(:disabled),
 .mode-btn:hover {
