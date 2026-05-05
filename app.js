@@ -1315,7 +1315,8 @@ const state = {
   mode: "study",
   showAll: false,
   answers: {},
-  submitted: {}
+  submitted: {},
+  optionOrders: {}
 };
 
 const letters = ["A", "B", "C", "D", "E"];
@@ -1340,6 +1341,27 @@ function currentLecture() {
 
 function answerKey(questionIndex = state.questionIndex) {
   return `${currentLecture().id}-${questionIndex}`;
+}
+
+function shuffledIndexes(length) {
+  const indexes = Array.from({ length }, (_, index) => index);
+
+  for (let index = indexes.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [indexes[index], indexes[randomIndex]] = [indexes[randomIndex], indexes[index]];
+  }
+
+  return indexes;
+}
+
+function optionOrder(questionIndex = state.questionIndex) {
+  const key = answerKey(questionIndex);
+
+  if (!state.optionOrders[key]) {
+    state.optionOrders[key] = shuffledIndexes(currentLecture().questions[questionIndex].answers.length);
+  }
+
+  return state.optionOrders[key];
 }
 
 function isCurrentLectureSubmitted() {
@@ -1384,6 +1406,8 @@ function renderQuestion() {
   const shouldReveal = state.mode === "exam"
     ? isCurrentLectureSubmitted()
     : state.showAll || selected !== undefined;
+  const order = optionOrder();
+  const correctDisplayIndex = order.indexOf(question.correct);
 
   lectureEyebrow.textContent = lecture.label;
   lectureTitle.textContent = lecture.title;
@@ -1395,9 +1419,10 @@ function renderQuestion() {
       </div>
       <h3>${state.questionIndex + 1}. ${question.text}</h3>
       <div class="answers">
-        ${question.answers.map((answer, index) => {
-          const isCorrect = index === question.correct;
-          const isSelected = index === selected;
+        ${order.map((originalIndex, displayIndex) => {
+          const answer = question.answers[originalIndex];
+          const isCorrect = originalIndex === question.correct;
+          const isSelected = originalIndex === selected;
           const resultClass = [
             isSelected ? "selected" : "",
             shouldReveal && isCorrect ? "correct" : "",
@@ -1405,14 +1430,14 @@ function renderQuestion() {
           ].filter(Boolean).join(" ");
 
           return `
-            <button class="answer-option ${resultClass}" type="button" data-answer="${index}" aria-pressed="${isSelected}">
-              <span class="answer-letter">${letters[index]}</span>
+            <button class="answer-option ${resultClass}" type="button" data-answer="${originalIndex}" aria-pressed="${isSelected}">
+              <span class="answer-letter">${letters[displayIndex]}</span>
               <span class="answer-text">${answer}</span>
             </button>
           `;
         }).join("")}
       </div>
-      ${shouldReveal ? `<div class="feedback">Correct answer: ${letters[question.correct]}. ${question.answers[question.correct]}</div>` : ""}
+      ${shouldReveal ? `<div class="feedback">Correct answer: ${letters[correctDisplayIndex]}. ${question.answers[question.correct]}</div>` : ""}
     </article>
   `;
 
@@ -1463,6 +1488,7 @@ nextBtn.addEventListener("click", () => {
 resetBtn.addEventListener("click", () => {
   currentLecture().questions.forEach((_, index) => {
     delete state.answers[answerKey(index)];
+    delete state.optionOrders[answerKey(index)];
   });
   delete state.submitted[currentLecture().id];
   state.questionIndex = 0;
