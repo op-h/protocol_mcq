@@ -288,6 +288,9 @@ button:focus-visible {
 .secondary-btn {
   padding: 0 16px;
   background: #f2f2f7;
+  justify-self: start;
+  width: max-content;
+  max-width: 100%;
 }
 
 .secondary-btn.primary-action {
@@ -521,6 +524,21 @@ button:focus-visible {
     scrollbar-width: none;
   }
 
+  .lecture-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
+
+  .lecture-item {
+    min-width: 0;
+  }
+
+  .lecture-item span {
+    max-width: 100%;
+  }
+
   .control-strip::-webkit-scrollbar,
   .lecture-list::-webkit-scrollbar {
     display: none;
@@ -535,6 +553,10 @@ button:focus-visible {
   .secondary-btn.compact {
     margin-left: 0;
     white-space: nowrap;
+  }
+
+  .progress-panel .secondary-btn {
+    justify-self: end;
   }
 
   .question-card,
@@ -592,7 +614,6 @@ button:focus-visible {
   }
 
   .lecture-item {
-    min-width: 88px;
     padding: 9px 11px;
   }
 
