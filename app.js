@@ -1374,7 +1374,8 @@ const state = {
   showAll: false,
   answers: {},
   submitted: {},
-  optionOrders: {}
+  optionOrders: {},
+  questionOrders: {}
 };
 
 const letters = ["A", "B", "C", "D", "E"];
@@ -1397,10 +1398,6 @@ function currentLecture() {
   return lectures[state.lectureIndex];
 }
 
-function answerKey(questionIndex = state.questionIndex) {
-  return `${currentLecture().id}-${questionIndex}`;
-}
-
 function shuffledIndexes(length) {
   const indexes = Array.from({ length }, (_, index) => index);
 
@@ -1412,11 +1409,30 @@ function shuffledIndexes(length) {
   return indexes;
 }
 
+function questionOrder() {
+  const lecture = currentLecture();
+
+  if (!state.questionOrders[lecture.id]) {
+    state.questionOrders[lecture.id] = shuffledIndexes(lecture.questions.length);
+  }
+
+  return state.questionOrders[lecture.id];
+}
+
+function originalQuestionIndex(displayIndex = state.questionIndex) {
+  return questionOrder()[displayIndex];
+}
+
+function answerKey(questionIndex = state.questionIndex) {
+  return `${currentLecture().id}-${originalQuestionIndex(questionIndex)}`;
+}
+
 function optionOrder(questionIndex = state.questionIndex) {
   const key = answerKey(questionIndex);
+  const question = currentLecture().questions[originalQuestionIndex(questionIndex)];
 
   if (!state.optionOrders[key]) {
-    state.optionOrders[key] = shuffledIndexes(currentLecture().questions[questionIndex].answers.length);
+    state.optionOrders[key] = shuffledIndexes(question.answers.length);
   }
 
   return state.optionOrders[key];
@@ -1438,11 +1454,15 @@ function renderLectures() {
 }
 
 function getAnsweredCount() {
-  return currentLecture().questions.filter((_, index) => state.answers[answerKey(index)] !== undefined).length;
+  return questionOrder().filter((_, index) => state.answers[answerKey(index)] !== undefined).length;
 }
 
 function getCorrectCount() {
-  return currentLecture().questions.filter((question, index) => state.answers[answerKey(index)] === question.correct).length;
+  const lecture = currentLecture();
+
+  return questionOrder().filter((originalIndex, displayIndex) => {
+    return state.answers[answerKey(displayIndex)] === lecture.questions[originalIndex].correct;
+  }).length;
 }
 
 function renderStats() {
@@ -1459,7 +1479,7 @@ function renderStats() {
 
 function renderQuestion() {
   const lecture = currentLecture();
-  const question = lecture.questions[state.questionIndex];
+  const question = lecture.questions[originalQuestionIndex()];
   const selected = state.answers[answerKey()];
   const shouldReveal = state.mode === "exam"
     ? isCurrentLectureSubmitted()
@@ -1544,11 +1564,12 @@ nextBtn.addEventListener("click", () => {
 });
 
 resetBtn.addEventListener("click", () => {
-  currentLecture().questions.forEach((_, index) => {
+  questionOrder().forEach((_, index) => {
     delete state.answers[answerKey(index)];
     delete state.optionOrders[answerKey(index)];
   });
   delete state.submitted[currentLecture().id];
+  delete state.questionOrders[currentLecture().id];
   state.questionIndex = 0;
   state.showAll = false;
   render();
